@@ -1,0 +1,268 @@
+# Building and Distributing Android Apps
+
+This guide explains how to **build, sign, and distribute the Android application** using Android Studio and Gradle.
+
+---
+
+# Requirements
+
+Before building the Android app, install the following:
+
+* Android Studio (latest version)
+* Android SDK
+* Java JDK 11 or higher
+* Gradle (included with Android Studio)
+
+Verify installations:
+
+```bash
+java -version
+adb version
+```
+
+---
+
+# Clone the Repository
+
+```bash
+git clone <repository-url>
+cd <project-folder>
+```
+
+Open the project using **Android Studio**.
+
+---
+
+# Project Structure
+
+Typical Android project structure:
+
+```
+android/
+ ├── app/
+ │    ├── src/
+ │    ├── build.gradle
+ │    └── proguard-rules.pro
+ ├── gradle/
+ ├── gradlew
+ └── settings.gradle
+```
+
+---
+
+# Build the Application
+
+You can build the application using **Android Studio** or **Gradle CLI**.
+
+### Using Android Studio
+
+```
+Build → Make Project
+```
+
+Shortcut:
+
+```
+Ctrl + F9
+```
+
+---
+
+### Using Command Line
+
+Build the debug APK:
+
+```bash
+./gradlew assembleDebug
+```
+
+Output:
+
+```
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+---
+
+# Create a Signed Release Build
+
+To distribute the app, you must create a **signed APK or AAB**.
+
+---
+
+# Step 1: Generate Keystore
+
+Run:
+
+```bash
+keytool -genkey -v \
+-keystore release.keystore \
+-alias release \
+-keyalg RSA \
+-keysize 2048 \
+-validity 10000
+```
+
+Move the keystore to:
+
+```
+android/app/release.keystore
+```
+
+---
+
+# Step 2: Configure Signing
+
+Edit:
+
+```
+android/app/build.gradle
+```
+
+Add:
+
+```gradle
+android {
+    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword "STORE_PASSWORD"
+            keyAlias "release"
+            keyPassword "KEY_PASSWORD"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+}
+```
+
+---
+
+# Step 3: Build Release APK
+
+```bash
+./gradlew assembleRelease
+```
+
+Output:
+
+```
+app/build/outputs/apk/release/app-release.apk
+```
+
+---
+
+# Build Android App Bundle (Recommended)
+
+For Google Play distribution:
+
+```bash
+./gradlew bundleRelease
+```
+
+Output:
+
+```
+app/build/outputs/bundle/release/app-release.aab
+```
+
+---
+
+# Install APK on Device
+
+Enable **USB Debugging** on your Android device.
+
+Connect the device and run:
+
+```bash
+adb install app/build/outputs/apk/release/app-release.apk
+```
+
+Check connected devices:
+
+```bash
+adb devices
+```
+
+---
+
+# Distributing the App
+
+You can distribute the Android app using the following methods:
+
+### Google Play Store
+
+1. Build **AAB file**
+2. Upload to **Google Play Console**
+3. Configure release
+4. Publish the app
+
+---
+
+### Internal Testing
+
+Upload to **Google Play Internal Testing** and share with testers.
+
+---
+
+### Direct APK Distribution
+
+You can share the APK through:
+
+* Website
+* Email
+* Firebase App Distribution
+* Enterprise MDM
+
+Users must enable:
+
+```
+Install apps from unknown sources
+```
+
+---
+
+# Troubleshooting
+
+### Gradle Permission Error
+
+Run:
+
+```bash
+chmod +x gradlew
+```
+
+---
+
+### Device Not Detected
+
+Restart ADB:
+
+```bash
+adb kill-server
+adb start-server
+```
+
+---
+
+# Security Best Practices
+
+Do not commit sensitive files:
+
+```
+release.keystore
+keystore.properties
+```
+
+Add them to `.gitignore`.
+
+---
+
+# License
+
+MIT

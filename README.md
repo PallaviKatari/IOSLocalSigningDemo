@@ -1,97 +1,256 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Local iOS Signing
 
-# Getting Started
+This project supports **local iOS code signing**, allowing you to build and install the app on a physical device without using App Store or TestFlight distribution.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Local signing is useful for:
+- Internal testing
+- Development builds
+- CI-free local deployment
+- Sideloading apps onto personal devices
 
-## Step 1: Start Metro
+---
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Requirements
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+Before you begin, ensure the following tools are installed:
 
-```sh
-# Using npm
-npm start
+- macOS
+- Xcode (latest recommended)
+- Xcode Command Line Tools
+- Apple Developer Account (Free or Paid)
+- iOS device connected via USB
 
-# OR using Yarn
-yarn start
+Optional but recommended:
+
+- `ios-deploy`
+- `xcpretty`
+
+Install optional tools:
+
+```bash
+brew install ios-deploy xcpretty
+
+-------------
+
+# Android Local Signing
+
+This project supports **local Android code signing**, allowing you to build a **signed APK or AAB** directly on your machine without using external signing services.
+
+Local signing is useful for:
+
+* Internal testing
+* Manual APK distribution
+* Offline builds
+* CI-independent release builds
+
+---
+
+# Requirements
+
+Before building the project, ensure the following are installed:
+
+* Android Studio
+* Android SDK
+* JDK 11 or newer
+* Gradle (comes with Android Studio)
+
+Verify installations:
+
+```bash
+java -version
+gradle -v
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+# Project Setup
 
-### Android
+Clone the repository:
 
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```bash
+git clone <repository-url>
+cd <project-folder>
 ```
 
-### iOS
+Open the project in Android Studio.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+---
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+# Create a Keystore
 
-```sh
-bundle install
+A keystore is required to sign the Android app.
+
+Run:
+
+```bash
+keytool -genkey -v \
+-keystore release.keystore \
+-alias release \
+-keyalg RSA \
+-keysize 2048 \
+-validity 10000
 ```
 
-Then, and every time you update your native dependencies, run:
+You will be prompted to enter:
 
-```sh
-bundle exec pod install
+* Keystore password
+* Key password
+* Name / Organization
+* Country code
+
+Store the generated file safely:
+
+```
+android/release.keystore
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+---
 
-```sh
-# Using npm
-npm run ios
+# Configure Signing in Gradle
 
-# OR using Yarn
-yarn ios
+Add the keystore configuration inside:
+
+```
+android/app/build.gradle
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Example:
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```gradle
+android {
+    signingConfigs {
+        release {
+            storeFile file("release.keystore")
+            storePassword "YOUR_STORE_PASSWORD"
+            keyAlias "release"
+            keyPassword "YOUR_KEY_PASSWORD"
+        }
+    }
 
-## Step 3: Modify your app
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+}
+```
 
-Now that you have successfully run the app, let's make changes!
+---
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+# Build Signed APK
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+Run:
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+```bash
+./gradlew assembleRelease
+```
 
-## Congratulations! :tada:
+Output:
 
-You've successfully run and modified your React Native App. :partying_face:
+```
+app/build/outputs/apk/release/app-release.apk
+```
 
-### Now what?
+---
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+# Build Android App Bundle (AAB)
+
+For Play Store distribution:
+
+```bash
+./gradlew bundleRelease
+```
+
+Output:
+
+```
+app/build/outputs/bundle/release/app-release.aab
+```
+
+---
+
+# Install APK to Device
+
+Connect your Android device via USB and enable **USB Debugging**.
+
+Install APK:
+
+```bash
+adb install app/build/outputs/apk/release/app-release.apk
+```
+
+---
+
+# Verify Signature
+
+You can verify the APK signature:
+
+```bash
+jarsigner -verify -verbose -certs app-release.apk
+```
+
+---
+
+# Security Notes
+
+Never commit these files:
+
+```
+release.keystore
+keystore.properties
+```
+
+Add them to `.gitignore`.
+
+Example:
+
+```
+*.keystore
+keystore.properties
+```
+
+---
 
 # Troubleshooting
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## Gradle Permission Error
 
-# Learn More
+Run:
 
-To learn more about React Native, take a look at the following resources:
+```bash
+chmod +x gradlew
+```
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+
+## Keystore Not Found
+
+Verify the path in `build.gradle`:
+
+```
+storeFile file("release.keystore")
+```
+
+---
+
+## Device Not Detected
+
+Check connected devices:
+
+```bash
+adb devices
+```
+
+Restart ADB if needed:
+
+```bash
+adb kill-server
+adb start-server
+```
+
+---
+
+# License
+
+MIT

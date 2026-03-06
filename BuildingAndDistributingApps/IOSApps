@@ -1,0 +1,276 @@
+# Building and Distributing iOS Apps
+
+This guide explains how to **build, sign, and distribute the iOS application** using Xcode and Apple Developer tools.
+
+---
+
+# Requirements
+
+Before building the app, ensure you have the following:
+
+* macOS
+* Xcode (latest recommended)
+* Apple Developer Account
+* iOS device for testing (optional)
+
+Install Xcode from the App Store and install command line tools:
+
+```bash
+xcode-select --install
+```
+
+---
+
+# Project Setup
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd <project-folder>
+```
+
+Open the project in Xcode:
+
+```bash
+open ios/App.xcworkspace
+```
+
+or
+
+```bash
+open ios/App.xcodeproj
+```
+
+---
+
+# Configure Signing
+
+1. Open the project in **Xcode**
+2. Select the **App Target**
+3. Navigate to **Signing & Capabilities**
+4. Enable:
+
+```
+Automatically manage signing
+```
+
+5. Select your **Apple Developer Team**
+
+Xcode will automatically generate:
+
+* Development Certificate
+* Provisioning Profile
+* Signing Identity
+
+---
+
+# Build the App
+
+To build the application in Xcode:
+
+```
+Product → Build
+```
+
+Shortcut:
+
+```
+⌘ + B
+```
+
+---
+
+# Run on a Physical Device
+
+1. Connect your iPhone using USB
+2. Select your device from the device list
+3. Run the application
+
+```
+Product → Run
+```
+
+Shortcut:
+
+```
+⌘ + R
+```
+
+---
+
+# Build from Command Line
+
+You can build the project using `xcodebuild`.
+
+List schemes:
+
+```bash
+xcodebuild -list
+```
+
+Build the app:
+
+```bash
+xcodebuild \
+-workspace ios/App.xcworkspace \
+-scheme App \
+-configuration Release \
+-build
+```
+
+---
+
+# Create an Archive
+
+To prepare the app for distribution:
+
+1. In Xcode select:
+
+```
+Product → Archive
+```
+
+2. The **Organizer** window will open.
+
+From there you can export builds for:
+
+* App Store
+* Ad Hoc distribution
+* Enterprise distribution
+* Development builds
+
+---
+
+# Export IPA
+
+After archiving:
+
+1. Open **Organizer**
+2. Select the archived build
+3. Click **Distribute App**
+4. Choose a distribution method:
+
+* App Store Connect
+* Ad Hoc
+* Development
+* Enterprise
+
+Xcode will generate a **.ipa file**.
+
+---
+
+# Distribution Methods
+
+## App Store Distribution
+
+Upload the archive directly to **App Store Connect** through Xcode.
+
+Steps:
+
+1. Archive the build
+2. Select **Distribute App**
+3. Choose **App Store Connect**
+4. Upload
+
+After upload, manage releases in App Store Connect.
+
+---
+
+## TestFlight
+
+TestFlight allows beta testing.
+
+Steps:
+
+1. Upload build to App Store Connect
+2. Enable **TestFlight testing**
+3. Add internal or external testers
+4. Share the TestFlight invitation
+
+---
+
+## Ad Hoc Distribution
+
+Ad Hoc allows installation on **specific registered devices**.
+
+Steps:
+
+1. Register device UDIDs in Apple Developer Portal
+2. Create an Ad Hoc provisioning profile
+3. Export IPA using Ad Hoc distribution
+4. Share the IPA with testers
+
+---
+
+## Enterprise Distribution
+
+For internal company apps.
+
+Requirements:
+
+* Apple Enterprise Developer Account
+
+Allows installation without App Store.
+
+---
+
+# Install IPA on Device
+
+Use Apple Configurator or CLI tools.
+
+Example using `ios-deploy`:
+
+```bash
+ios-deploy --bundle App.ipa
+```
+
+---
+
+# Troubleshooting
+
+## Signing Errors
+
+Check:
+
+```
+Signing & Capabilities
+```
+
+Ensure:
+
+* Correct Team selected
+* Valid provisioning profile
+* Matching bundle identifier
+
+---
+
+## Device Not Detected
+
+Run:
+
+```bash
+xcrun xctrace list devices
+```
+
+Reconnect the device and ensure it is trusted.
+
+---
+
+# Security Notes
+
+Do not commit sensitive files:
+
+```
+*.p12
+*.mobileprovision
+*.keychain
+```
+
+Add them to `.gitignore`.
+
+---
+
+# License
+
+MIT
